@@ -41,7 +41,26 @@ final class KeychainHandleTests: XCTestCase {
     let keychain = TestKeychainHandle(storage: [key: Data([0xFF])])
 
     XCTAssertThrowsError(try keychain.string(for: key)) { error in
-      XCTAssertEqual(error as? KeychainHandleError, .invalidStringData)
+      XCTAssertEqual(error as? KeychainError, .decode)
     }
+  }
+
+  func testForgeStylePasswordAttributesRemainAvailable() {
+    let attributes = Keychain.Password.Attributes.service(
+      "wave-api",
+      label: "accessToken",
+      account: "user"
+    )
+
+    XCTAssertEqual(attributes.kind, .generic)
+    XCTAssertEqual(attributes.service, "wave-api")
+    XCTAssertEqual(attributes.account, "user")
+    XCTAssertEqual(attributes.generic, Data("accessToken".utf8))
+  }
+
+  func testKeychainErrorMapsStatusValues() {
+    XCTAssertEqual(KeychainError.fromValue(errSecDuplicateItem), .duplicateItem)
+    XCTAssertEqual(KeychainError.fromValue(errSecItemNotFound), .itemNotFound)
+    XCTAssertEqual(KeychainError.duplicateItem.statusValue, errSecDuplicateItem)
   }
 }

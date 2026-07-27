@@ -6,7 +6,16 @@ Handle turns ceremony-heavy Apple framework APIs into small, direct Swift servic
 
 ### HandleSecurity
 
-`HandleSecurity` starts with Keychain ergonomics:
+`HandleSecurity` ports ForgeSecurity's Keychain coverage into a standalone package:
+
+- generic and internet passwords
+- certificates
+- identities
+- cryptographic keys
+- shared Keychain attributes and match queries
+- Security.framework status error mapping
+
+It also includes a small app-shaped handle for common generic password use:
 
 ```swift
 import HandleSecurity
