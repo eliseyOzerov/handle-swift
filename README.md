@@ -6,9 +6,9 @@ Handle turns ceremony-heavy Apple framework APIs into small, direct Swift servic
 
 ### HandleAuth
 
-`HandleAuth` wraps authentication APIs that are usually delegate- or controller-heavy.
+`HandleAuth` wraps Apple authentication APIs that are usually delegate- or context-heavy.
 
-The first handle is Sign in with Apple:
+Sign in with Apple:
 
 ```swift
 import HandleAuth
@@ -22,6 +22,19 @@ apple.setSignInResult(.init(
   nonce: "nonce",
   displayName: "Taylor"
 ))
+```
+
+Local authentication with biometry or passcode:
+
+```swift
+let local = AuthHandle.Local.shared
+
+if local.canAuthenticate(policy: .deviceOwner).isAvailable {
+  try await local.authenticate(reason: "Unlock private notes")
+}
+
+let testLocal = AuthHandle.Local.Test()
+testLocal.setAuthenticationResult(.init(policy: .deviceOwner, biometryType: .faceID))
 ```
 
 ### HandleSecurity
