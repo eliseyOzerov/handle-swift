@@ -47,6 +47,14 @@ let mockApple = AuthHandle.Apple.Mock()
 let mockKeychain = SecurityHandle.Keychain.Mock()
 ```
 
+For storage-style tests, `HandleSecurity` also includes an in-memory Keychain:
+
+```swift
+let keychain = SecurityHandle.Keychain.Test()
+try keychain.save("token", for: attributes)
+let token = try keychain.find(attributes)
+```
+
 ### HandleSecurity
 
 `HandleSecurity` ports ForgeSecurity's Keychain coverage into a standalone package:

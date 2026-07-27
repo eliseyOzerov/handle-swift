@@ -319,6 +319,13 @@ extension AuthHandle.Apple {
 
 extension AuthHandle.Apple: AuthHandle.Apple.Interface {}
 
+public extension AuthHandle.Apple.Interface {
+  @MainActor
+  func signIn() async throws -> AuthHandle.Apple.SignInResult {
+    try await signIn(options: AuthHandle.Apple.SignInOptions())
+  }
+}
+
 @MainActor
 private final class AppleAuthorizationSession: NSObject, ASAuthorizationControllerDelegate {
   private let options: AuthHandle.Apple.SignInOptions

@@ -457,3 +457,34 @@ extension AuthHandle.Local {
 }
 
 extension AuthHandle.Local: AuthHandle.Local.Interface {}
+
+public extension AuthHandle.Local.Interface {
+  @MainActor
+  func canAuthenticate(policy: AuthHandle.Local.Policy = .deviceOwner) -> AuthHandle.Local.Availability {
+    canAuthenticate(policy: policy)
+  }
+
+  @MainActor
+  func authenticate(
+    reason: String,
+    policy: AuthHandle.Local.Policy = .deviceOwner,
+    options: AuthHandle.Local.PromptOptions = AuthHandle.Local.PromptOptions()
+  ) async throws -> AuthHandle.Local.Result {
+    try await authenticate(reason: reason, policy: policy, options: options)
+  }
+
+  @MainActor
+  func authenticate(
+    accessControl: SecAccessControl,
+    operation: AuthHandle.Local.AccessControlOperation = .useItem,
+    reason: String,
+    options: AuthHandle.Local.PromptOptions = AuthHandle.Local.PromptOptions()
+  ) async throws -> AuthHandle.Local.Result {
+    try await authenticate(
+      accessControl: accessControl,
+      operation: operation,
+      reason: reason,
+      options: options
+    )
+  }
+}
