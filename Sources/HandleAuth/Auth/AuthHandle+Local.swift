@@ -291,7 +291,11 @@ extension AuthHandle.Local {
         self = .userCancel
       case .userFallback:
         self = .userFallback
-      case .watchNotAvailable, .biometryNotPaired, .invalidDimensions:
+      #if os(macOS)
+      case .watchNotAvailable:
+        self = .localAuthentication(code: error.errorCode)
+      #endif
+      case .biometryNotPaired, .invalidDimensions:
         self = .localAuthentication(code: error.errorCode)
       @unknown default:
         self = .localAuthentication(code: error.errorCode)
