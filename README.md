@@ -4,6 +4,26 @@ Handle turns ceremony-heavy Apple framework APIs into small, direct Swift servic
 
 ## Products
 
+### HandleAuth
+
+`HandleAuth` wraps authentication APIs that are usually delegate- or controller-heavy.
+
+The first handle is Sign in with Apple:
+
+```swift
+import HandleAuth
+
+let result = try await AuthHandle.Apple.shared.signIn()
+
+let apple = AuthHandle.Apple.Test()
+apple.setSignInResult(.init(
+  identityToken: "identity-token",
+  userID: "user-id",
+  nonce: "nonce",
+  displayName: "Taylor"
+))
+```
+
 ### HandleSecurity
 
 `HandleSecurity` ports ForgeSecurity's Keychain coverage into a standalone package:
