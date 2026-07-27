@@ -1,12 +1,12 @@
 import Foundation
 import Security
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Namespace for cryptographic key Keychain operations.
   public enum Key {}
 }
 
-extension Keychain.Key {
+extension SecurityHandle.Keychain.Key {
   struct Kind {
     func toDict() -> KeychainDictionary {
       [String(kSecClass): kSecClassKey]
@@ -40,7 +40,7 @@ extension Keychain.Key {
     }
   }
 
-  /// Key reference and attributes returned from `Keychain.Key.find`.
+  /// Key reference and attributes returned from `SecurityHandle.Keychain.Key.find`.
   public struct Result {
     public var reference: SecKey
     public var persistentReference: Data?
@@ -57,7 +57,7 @@ extension Keychain.Key {
         let value = dictionary[String(kSecValueRef)],
         CFGetTypeID(value as CFTypeRef) == SecKeyGetTypeID()
       else {
-        throw KeychainError.decode
+        throw SecurityHandle.Error.decode
       }
 
       reference = value as! SecKey
@@ -68,7 +68,7 @@ extension Keychain.Key {
 
   /// Attributes for key Keychain items.
   public struct Attributes {
-    public var general: Keychain.Attributes?
+    public var general: SecurityHandle.Keychain.Attributes?
     public var keyClass: KeyClass?
     public var applicationLabel: Data?
     public var applicationTag: Data?
@@ -88,7 +88,7 @@ extension Keychain.Key {
     public var canUnwrap: Bool?
 
     public init(
-      general: Keychain.Attributes? = nil,
+      general: SecurityHandle.Keychain.Attributes? = nil,
       keyClass: KeyClass? = nil,
       applicationLabel: Data? = nil,
       applicationTag: Data? = nil,
@@ -128,7 +128,7 @@ extension Keychain.Key {
     }
 
     init(dictionary: KeychainDictionary) {
-      general = Keychain.Attributes(dictionary: dictionary)
+      general = SecurityHandle.Keychain.Attributes(dictionary: dictionary)
       keyClass = KeyClass(value: dictionary[String(kSecAttrKeyClass)])
       applicationLabel = dictionary[String(kSecAttrApplicationLabel)] as? Data
       applicationTag = dictionary[String(kSecAttrApplicationTag)] as? Data
@@ -170,7 +170,7 @@ extension Keychain.Key {
       return query
     }
 
-    /// Key class values used by `Keychain.Key.Attributes` and `Keychain.Identity.Attributes`.
+    /// Key class values used by `SecurityHandle.Keychain.Key.Attributes` and `SecurityHandle.Keychain.Identity.Attributes`.
     public enum KeyClass: Equatable {
       case `public`
       case `private`
@@ -195,7 +195,7 @@ extension Keychain.Key {
       }
     }
 
-    /// Key type values used by `Keychain.Key.Attributes` and `Keychain.Identity.Attributes`.
+    /// Key type values used by `SecurityHandle.Keychain.Key.Attributes` and `SecurityHandle.Keychain.Identity.Attributes`.
     public enum KeyType: Equatable {
       case rsa
       case ellipticCurveSECPrimeRandom
@@ -217,7 +217,7 @@ extension Keychain.Key {
       }
     }
 
-    /// Key token identifiers used by `Keychain.Key.Attributes` and `Keychain.Identity.Attributes`.
+    /// Key token identifiers used by `SecurityHandle.Keychain.Key.Attributes` and `SecurityHandle.Keychain.Identity.Attributes`.
     public enum TokenID: Equatable {
       case secureEnclave
 
@@ -259,7 +259,7 @@ extension Keychain.Key {
   /// Finds a key item matching the supplied attributes.
   public static func find(
     _ attributes: Attributes = Attributes(),
-    matching: Keychain.Match = Keychain.Match()
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
   ) throws -> Result {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
@@ -305,13 +305,13 @@ extension Keychain.Key {
   public static func save(_ value: Value, for attributes: Attributes) throws {
     do {
       try add(value.reference, with: attributes)
-    } catch KeychainError.duplicateItem {
+    } catch SecurityHandle.Error.duplicateItem {
       try update(value, for: attributes)
     }
   }
 
   /// Deletes key items matching the supplied attributes.
-  public static func delete(_ attributes: Attributes, matching: Keychain.Match? = nil) throws {
+  public static func delete(_ attributes: Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
     query.merge(attributes.toDict())
@@ -328,7 +328,7 @@ extension Keychain.Key {
 
   private static func decodeResult(_ result: AnyObject?) throws -> Result {
     guard let dictionary = result as? KeychainDictionary else {
-      throw KeychainError.decode
+      throw SecurityHandle.Error.decode
     }
 
     return try Result(dictionary: dictionary)

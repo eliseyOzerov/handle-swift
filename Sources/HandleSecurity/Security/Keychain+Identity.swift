@@ -1,12 +1,12 @@
 import Foundation
 import Security
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Namespace for identity Keychain operations.
   public enum Identity {}
 }
 
-extension Keychain.Identity {
+extension SecurityHandle.Keychain.Identity {
   struct Kind {
     func toDict() -> KeychainDictionary {
       [kSecClass as String: kSecClassIdentity]
@@ -45,7 +45,7 @@ extension Keychain.Identity {
     }
   }
 
-  /// Identity reference and attributes returned from `Keychain.Identity.find`.
+  /// Identity reference and attributes returned from `SecurityHandle.Keychain.Identity.find`.
   public struct Result {
     public var reference: SecIdentity
     public var persistentReference: Data?
@@ -62,7 +62,7 @@ extension Keychain.Identity {
         let value = dictionary[kSecValueRef as String],
         CFGetTypeID(value as CFTypeRef) == SecIdentityGetTypeID()
       else {
-        throw KeychainError.decode
+        throw SecurityHandle.Error.decode
       }
 
       reference = value as! SecIdentity
@@ -73,7 +73,7 @@ extension Keychain.Identity {
 
   /// Attributes for identity Keychain items.
   public struct Attributes {
-    public var general: Keychain.Attributes?
+    public var general: SecurityHandle.Keychain.Attributes?
     public var subject: Data?
     public var issuer: Data?
     public var serialNumber: Data?
@@ -81,13 +81,13 @@ extension Keychain.Identity {
     public var publicKeyHash: Data?
     public var certificateType: UInt32?
     public var certificateEncoding: UInt32?
-    public var keyClass: Keychain.Key.Attributes.KeyClass?
+    public var keyClass: SecurityHandle.Keychain.Key.Attributes.KeyClass?
     public var applicationLabel: Data?
     public var isPermanent: Bool?
     public var isSensitive: Bool?
     public var isExtractable: Bool?
     public var applicationTag: Data?
-    public var keyType: Keychain.Key.Attributes.KeyType?
+    public var keyType: SecurityHandle.Keychain.Key.Attributes.KeyType?
     public var keySizeInBits: Int?
     public var effectiveKeySize: Int?
     public var canEncrypt: Bool?
@@ -97,10 +97,10 @@ extension Keychain.Identity {
     public var canVerify: Bool?
     public var canWrap: Bool?
     public var canUnwrap: Bool?
-    public var tokenID: Keychain.Key.Attributes.TokenID?
+    public var tokenID: SecurityHandle.Keychain.Key.Attributes.TokenID?
 
     public init(
-      general: Keychain.Attributes? = nil,
+      general: SecurityHandle.Keychain.Attributes? = nil,
       subject: Data? = nil,
       issuer: Data? = nil,
       serialNumber: Data? = nil,
@@ -108,13 +108,13 @@ extension Keychain.Identity {
       publicKeyHash: Data? = nil,
       certificateType: UInt32? = nil,
       certificateEncoding: UInt32? = nil,
-      keyClass: Keychain.Key.Attributes.KeyClass? = nil,
+      keyClass: SecurityHandle.Keychain.Key.Attributes.KeyClass? = nil,
       applicationLabel: Data? = nil,
       isPermanent: Bool? = nil,
       isSensitive: Bool? = nil,
       isExtractable: Bool? = nil,
       applicationTag: Data? = nil,
-      keyType: Keychain.Key.Attributes.KeyType? = nil,
+      keyType: SecurityHandle.Keychain.Key.Attributes.KeyType? = nil,
       keySizeInBits: Int? = nil,
       effectiveKeySize: Int? = nil,
       canEncrypt: Bool? = nil,
@@ -124,7 +124,7 @@ extension Keychain.Identity {
       canVerify: Bool? = nil,
       canWrap: Bool? = nil,
       canUnwrap: Bool? = nil,
-      tokenID: Keychain.Key.Attributes.TokenID? = nil
+      tokenID: SecurityHandle.Keychain.Key.Attributes.TokenID? = nil
     ) {
       self.general = general
       self.subject = subject
@@ -154,7 +154,7 @@ extension Keychain.Identity {
     }
 
     init(dictionary: KeychainDictionary) {
-      general = Keychain.Attributes(dictionary: dictionary)
+      general = SecurityHandle.Keychain.Attributes(dictionary: dictionary)
       subject = dictionary[kSecAttrSubject as String] as? Data
       issuer = dictionary[kSecAttrIssuer as String] as? Data
       serialNumber = dictionary[kSecAttrSerialNumber as String] as? Data
@@ -162,13 +162,13 @@ extension Keychain.Identity {
       publicKeyHash = dictionary[kSecAttrPublicKeyHash as String] as? Data
       certificateType = dictionary[kSecAttrCertificateType as String] as? UInt32
       certificateEncoding = dictionary[kSecAttrCertificateEncoding as String] as? UInt32
-      keyClass = Keychain.Key.Attributes.KeyClass(value: dictionary[kSecAttrKeyClass as String])
+      keyClass = SecurityHandle.Keychain.Key.Attributes.KeyClass(value: dictionary[kSecAttrKeyClass as String])
       applicationLabel = dictionary[kSecAttrApplicationLabel as String] as? Data
       isPermanent = dictionary[kSecAttrIsPermanent as String] as? Bool
       isSensitive = dictionary[kSecAttrIsSensitive as String] as? Bool
       isExtractable = dictionary[kSecAttrIsExtractable as String] as? Bool
       applicationTag = dictionary[kSecAttrApplicationTag as String] as? Data
-      keyType = Keychain.Key.Attributes.KeyType(value: dictionary[kSecAttrKeyType as String])
+      keyType = SecurityHandle.Keychain.Key.Attributes.KeyType(value: dictionary[kSecAttrKeyType as String])
       keySizeInBits = dictionary[kSecAttrKeySizeInBits as String] as? Int
       effectiveKeySize = dictionary[kSecAttrEffectiveKeySize as String] as? Int
       canEncrypt = dictionary[kSecAttrCanEncrypt as String] as? Bool
@@ -178,7 +178,7 @@ extension Keychain.Identity {
       canVerify = dictionary[kSecAttrCanVerify as String] as? Bool
       canWrap = dictionary[kSecAttrCanWrap as String] as? Bool
       canUnwrap = dictionary[kSecAttrCanUnwrap as String] as? Bool
-      tokenID = Keychain.Key.Attributes.TokenID(value: dictionary[kSecAttrTokenID as String])
+      tokenID = SecurityHandle.Keychain.Key.Attributes.TokenID(value: dictionary[kSecAttrTokenID as String])
     }
 
     func toDict() -> KeychainDictionary {
@@ -246,7 +246,7 @@ extension Keychain.Identity {
   @discardableResult
   public static func find(
     _ attributes: Attributes = Attributes(),
-    matching: Keychain.Match = Keychain.Match()
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
   ) throws -> Result {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
@@ -292,13 +292,13 @@ extension Keychain.Identity {
   public static func save(_ value: Value, for attributes: Attributes) throws {
     do {
       try add(value, with: attributes)
-    } catch KeychainError.duplicateItem {
+    } catch SecurityHandle.Error.duplicateItem {
       try update(value, for: attributes)
     }
   }
 
   /// Deletes identity items matching the supplied attributes.
-  public static func delete(_ attributes: Attributes, matching: Keychain.Match? = nil) throws {
+  public static func delete(_ attributes: Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
     query.merge(attributes.toDict())
@@ -315,7 +315,7 @@ extension Keychain.Identity {
 
   private static func decodeResult(_ result: AnyObject?) throws -> Result {
     guard let dictionary = result as? KeychainDictionary else {
-      throw KeychainError.decode
+      throw SecurityHandle.Error.decode
     }
 
     return try Result(dictionary: dictionary)

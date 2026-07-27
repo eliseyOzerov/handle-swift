@@ -15,8 +15,8 @@ extension KeychainDictionary {
   }
 }
 
-func keychainError(_ status: OSStatus) -> KeychainError {
-  KeychainError.fromValue(status) ?? .unknown(status)
+func keychainError(_ status: OSStatus) -> SecurityHandle.Error {
+  SecurityHandle.Error.fromValue(status) ?? .unknown(status)
 }
 
 func keychainString(_ value: Any?) -> String? {

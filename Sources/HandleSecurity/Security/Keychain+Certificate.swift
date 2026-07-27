@@ -1,12 +1,12 @@
 import Foundation
 import Security
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Namespace for certificate Keychain operations.
   public enum Certificate {}
 }
 
-extension Keychain.Certificate {
+extension SecurityHandle.Keychain.Certificate {
   struct Kind {
     func toDict() -> KeychainDictionary {
       [kSecClass as String: kSecClassCertificate]
@@ -45,7 +45,7 @@ extension Keychain.Certificate {
     }
   }
 
-  /// Certificate reference and attributes returned from `Keychain.Certificate.find`.
+  /// Certificate reference and attributes returned from `SecurityHandle.Keychain.Certificate.find`.
   public struct Result {
     public var reference: SecCertificate
     public var persistentReference: Data?
@@ -62,7 +62,7 @@ extension Keychain.Certificate {
         let value = dictionary[kSecValueRef as String],
         CFGetTypeID(value as CFTypeRef) == SecCertificateGetTypeID()
       else {
-        throw KeychainError.decode
+        throw SecurityHandle.Error.decode
       }
 
       reference = value as! SecCertificate
@@ -73,7 +73,7 @@ extension Keychain.Certificate {
 
   /// Attributes for certificate Keychain items.
   public struct Attributes {
-    public var general: Keychain.Attributes?
+    public var general: SecurityHandle.Keychain.Attributes?
     public var subject: Data?
     public var issuer: Data?
     public var serialNumber: Data?
@@ -83,7 +83,7 @@ extension Keychain.Certificate {
     public var certificateEncoding: UInt32?
 
     public init(
-      general: Keychain.Attributes? = nil,
+      general: SecurityHandle.Keychain.Attributes? = nil,
       subject: Data? = nil,
       issuer: Data? = nil,
       serialNumber: Data? = nil,
@@ -103,7 +103,7 @@ extension Keychain.Certificate {
     }
 
     init(dictionary: KeychainDictionary) {
-      general = Keychain.Attributes(dictionary: dictionary)
+      general = SecurityHandle.Keychain.Attributes(dictionary: dictionary)
       subject = dictionary[kSecAttrSubject as String] as? Data
       issuer = dictionary[kSecAttrIssuer as String] as? Data
       serialNumber = dictionary[kSecAttrSerialNumber as String] as? Data
@@ -161,7 +161,7 @@ extension Keychain.Certificate {
   @discardableResult
   public static func find(
     _ attributes: Attributes = Attributes(),
-    matching: Keychain.Match = Keychain.Match()
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
   ) throws -> Result {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
@@ -207,13 +207,13 @@ extension Keychain.Certificate {
   public static func save(_ value: Value, for attributes: Attributes) throws {
     do {
       try add(value, with: attributes)
-    } catch KeychainError.duplicateItem {
+    } catch SecurityHandle.Error.duplicateItem {
       try update(value, for: attributes)
     }
   }
 
   /// Deletes certificate items matching the supplied attributes.
-  public static func delete(_ attributes: Attributes, matching: Keychain.Match? = nil) throws {
+  public static func delete(_ attributes: Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
     var query: KeychainDictionary = [:]
     query.merge(Kind().toDict())
     query.merge(attributes.toDict())
@@ -230,7 +230,7 @@ extension Keychain.Certificate {
 
   private static func decodeResult(_ result: AnyObject?) throws -> Result {
     guard let dictionary = result as? KeychainDictionary else {
-      throw KeychainError.decode
+      throw SecurityHandle.Error.decode
     }
 
     return try Result(dictionary: dictionary)

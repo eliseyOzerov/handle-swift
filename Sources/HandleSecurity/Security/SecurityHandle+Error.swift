@@ -2,7 +2,8 @@ import Foundation
 import Security
 
 /// Error values returned by Security.framework Keychain operations.
-public enum KeychainError: LocalizedError, Equatable {
+extension SecurityHandle {
+public enum Error: LocalizedError, Equatable {
   case unimplemented
   case diskFull
   case io
@@ -76,7 +77,7 @@ public enum KeychainError: LocalizedError, Equatable {
   case conversionError
   case unknown(OSStatus)
 
-  public static func fromValue(_ status: OSStatus) -> KeychainError? {
+  public static func fromValue(_ status: OSStatus) -> SecurityHandle.Error? {
     switch status {
     case errSecSuccess: nil
     case errSecUnimplemented: .unimplemented
@@ -235,4 +236,5 @@ public enum KeychainError: LocalizedError, Equatable {
     case .unknown(let status): status
     }
   }
+}
 }

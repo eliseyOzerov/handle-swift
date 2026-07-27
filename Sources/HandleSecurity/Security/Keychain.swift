@@ -1,36 +1,38 @@
 import Foundation
 import Security
 
-/// Namespace for Security.framework Keychain helpers, including `Keychain.Password` and `Keychain.Key`.
+/// Namespace for Security.framework Keychain helpers, including `SecurityHandle.Keychain.Password` and `SecurityHandle.Keychain.Key`.
+extension SecurityHandle {
 public final class Keychain: Sendable {
   private init() {}
   public static let shared = Keychain()
 
-  /// Saves a generic password string using `Keychain.Password`.
+  /// Saves a generic password string using `SecurityHandle.Keychain.Password`.
   public func save(_ value: String, for query: Password.Attributes) throws {
     try Password().save(Data(value.utf8), for: query)
   }
 
-  /// Finds a generic password string using `Keychain.Password`.
+  /// Finds a generic password string using `SecurityHandle.Keychain.Password`.
   public func find(
     _ query: Password.Attributes,
-    matching: Keychain.Match = Keychain.Match()
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
   ) throws -> String? {
     do {
       let result = try Password().find(query, matching: matching)
       return String(data: result.data, encoding: .utf8)
-    } catch KeychainError.itemNotFound {
+    } catch SecurityHandle.Error.itemNotFound {
       return nil
     }
   }
 
-  /// Deletes a generic password using `Keychain.Password`.
-  public func delete(_ query: Password.Attributes, matching: Keychain.Match? = nil) throws {
+  /// Deletes a generic password using `SecurityHandle.Keychain.Password`.
+  public func delete(_ query: Password.Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
     try Password().delete(query, matching: matching)
   }
 }
+}
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Shared Keychain item attributes used by password, certificate, identity, and key queries.
   public struct Attributes {
     public var accessibility: AccessPolicy?
@@ -128,8 +130,8 @@ extension Keychain {
   }
 }
 
-extension Keychain {
-  /// Accessibility policies for `Keychain.Attributes`.
+extension SecurityHandle.Keychain {
+  /// Accessibility policies for `SecurityHandle.Keychain.Attributes`.
   public enum AccessPolicy: Equatable {
     case whenPasscodeSetThisDeviceOnly
     case whenUnlockedThisDeviceOnly
@@ -182,7 +184,7 @@ extension Keychain {
     }
   }
 
-  /// Synchronization policy for `Keychain.Attributes`.
+  /// Synchronization policy for `SecurityHandle.Keychain.Attributes`.
   public enum Synchronizability: Equatable {
     case enabled
     case disabled
@@ -207,7 +209,7 @@ extension Keychain {
   }
 }
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Search filters for Keychain copy and read operations.
   public struct Match {
     public var policy: SecPolicy?
@@ -256,7 +258,7 @@ extension Keychain {
       return query
     }
 
-    /// Limit for the number of values returned by `Keychain.Match`.
+    /// Limit for the number of values returned by `SecurityHandle.Keychain.Match`.
     public enum Limit: Equatable {
       case one
       case all

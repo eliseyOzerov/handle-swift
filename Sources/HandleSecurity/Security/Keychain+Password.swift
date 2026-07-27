@@ -1,14 +1,14 @@
 import Foundation
 import Security
 
-extension Keychain {
+extension SecurityHandle.Keychain {
   /// Namespace for generic and internet password Keychain operations.
   public struct Password {
     public init() {}
   }
 }
 
-extension Keychain.Password {
+extension SecurityHandle.Keychain.Password {
   struct Value {
     var data: Data
 
@@ -29,7 +29,7 @@ extension Keychain.Password {
     }
   }
 
-  /// Password data and attributes returned from `Keychain.Password.find`.
+  /// Password data and attributes returned from `SecurityHandle.Keychain.Password.find`.
   public struct Result {
     public var data: Data
     public var attributes: Attributes
@@ -41,14 +41,14 @@ extension Keychain.Password {
 
     init(dictionary: KeychainDictionary) throws {
       guard let data = dictionary[String(kSecValueData)] as? Data else {
-        throw KeychainError.decode
+        throw SecurityHandle.Error.decode
       }
       self.data = data
       attributes = Attributes(dictionary: dictionary)
     }
   }
 
-  /// Password item class used by `Keychain.Password.Attributes`.
+  /// Password item class used by `SecurityHandle.Keychain.Password.Attributes`.
   public enum Kind: Equatable {
     case generic
     case internet
@@ -72,28 +72,28 @@ extension Keychain.Password {
 
   /// Attributes for generic and internet password Keychain items.
   public struct Attributes {
-    public var general: Keychain.Attributes?
+    public var general: SecurityHandle.Keychain.Attributes?
     public var kind: Kind
     public var service: String?
     public var account: String?
     public var generic: Data?
     public var server: String?
     public var securityDomain: String?
-    public var internetProtocol: Keychain.InternetProtocol?
-    public var authenticationType: Keychain.AuthenticationType?
+    public var internetProtocol: SecurityHandle.Keychain.InternetProtocol?
+    public var authenticationType: SecurityHandle.Keychain.AuthenticationType?
     public var port: Int?
     public var path: String?
 
     public init(
-      general: Keychain.Attributes? = nil,
+      general: SecurityHandle.Keychain.Attributes? = nil,
       kind: Kind = .generic,
       service: String? = nil,
       account: String? = nil,
       generic: Data? = nil,
       server: String? = nil,
       securityDomain: String? = nil,
-      internetProtocol: Keychain.InternetProtocol? = nil,
-      authenticationType: Keychain.AuthenticationType? = nil,
+      internetProtocol: SecurityHandle.Keychain.InternetProtocol? = nil,
+      authenticationType: SecurityHandle.Keychain.AuthenticationType? = nil,
       port: Int? = nil,
       path: String? = nil
     ) {
@@ -111,15 +111,15 @@ extension Keychain.Password {
     }
 
     init(dictionary: KeychainDictionary) {
-      general = Keychain.Attributes(dictionary: dictionary)
+      general = SecurityHandle.Keychain.Attributes(dictionary: dictionary)
       kind = Kind(value: dictionary[String(kSecClass)]) ?? .generic
       service = dictionary[String(kSecAttrService)] as? String
       account = dictionary[String(kSecAttrAccount)] as? String
       generic = dictionary[String(kSecAttrGeneric)] as? Data
       server = dictionary[String(kSecAttrServer)] as? String
       securityDomain = dictionary[String(kSecAttrSecurityDomain)] as? String
-      internetProtocol = Keychain.InternetProtocol(value: dictionary[String(kSecAttrProtocol)])
-      authenticationType = Keychain.AuthenticationType(value: dictionary[String(kSecAttrAuthenticationType)])
+      internetProtocol = SecurityHandle.Keychain.InternetProtocol(value: dictionary[String(kSecAttrProtocol)])
+      authenticationType = SecurityHandle.Keychain.AuthenticationType(value: dictionary[String(kSecAttrAuthenticationType)])
       port = dictionary[String(kSecAttrPort)] as? Int
       path = dictionary[String(kSecAttrPath)] as? String
     }
@@ -148,8 +148,8 @@ extension Keychain.Password {
       _ server: String,
       account: String? = nil,
       securityDomain: String? = nil,
-      internetProtocol: Keychain.InternetProtocol? = nil,
-      auth: Keychain.AuthenticationType? = nil,
+      internetProtocol: SecurityHandle.Keychain.InternetProtocol? = nil,
+      auth: SecurityHandle.Keychain.AuthenticationType? = nil,
       port: Int? = nil,
       path: String? = nil
     ) -> Attributes {
@@ -202,7 +202,7 @@ extension Keychain.Password {
   /// Finds a password item matching the supplied attributes.
   public func find(
     _ attributes: Attributes,
-    matching: Keychain.Match = Keychain.Match()
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
   ) throws -> Result {
     var query: KeychainDictionary = [:]
     query.merge(attributes.toDict())
@@ -235,13 +235,13 @@ extension Keychain.Password {
   public func save(_ value: Data, for attributes: Attributes) throws {
     do {
       try add(value, for: attributes)
-    } catch KeychainError.duplicateItem {
+    } catch SecurityHandle.Error.duplicateItem {
       try update(value, for: attributes)
     }
   }
 
   /// Deletes password items matching the supplied attributes.
-  public func delete(_ attributes: Attributes, matching: Keychain.Match? = nil) throws {
+  public func delete(_ attributes: Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
     var query = attributes.toDict()
     if let matching {
       query.merge(matching.toDict())
@@ -256,15 +256,15 @@ extension Keychain.Password {
 
   private func decodeResult(_ result: AnyObject?) throws -> Result {
     guard let dictionary = result as? KeychainDictionary else {
-      throw KeychainError.decode
+      throw SecurityHandle.Error.decode
     }
 
     return try Result(dictionary: dictionary)
   }
 }
 
-extension Keychain {
-  /// Internet password protocol values used by `Keychain.Password.Attributes`.
+extension SecurityHandle.Keychain {
+  /// Internet password protocol values used by `SecurityHandle.Keychain.Password.Attributes`.
   public enum InternetProtocol: Equatable {
     case ftp, ftpAccount, http, irc, nntp, pop3, smtp, socks, imap, ldap
     case appleTalk, afp, telnet, ssh, ftps, https, httpProxy, httpsProxy, ftpProxy
@@ -345,7 +345,7 @@ extension Keychain {
     }
   }
 
-  /// Internet password authentication values used by `Keychain.Password.Attributes`.
+  /// Internet password authentication values used by `SecurityHandle.Keychain.Password.Attributes`.
   public enum AuthenticationType: Equatable {
     case ntlm, msn, dpa, rpa, httpBasic, httpDigest, htmlForm
     case `default`
