@@ -7,6 +7,7 @@ let package = Package(
   platforms: [.iOS(.v18), .macOS(.v14), .tvOS(.v17), .visionOS(.v1)],
   products: [
     .library(name: "HandleAuth", targets: ["HandleAuth"]),
+    .library(name: "HandleLocation", targets: ["HandleLocation"]),
     .library(name: "HandleSecurity", targets: ["HandleSecurity"]),
   ],
   dependencies: [
@@ -25,6 +26,18 @@ let package = Package(
       name: "HandleAuthTests",
       dependencies: [
         "HandleAuth",
+        .product(name: "Mockable", package: "Mockable"),
+      ]
+    ),
+    .target(
+      name: "HandleLocation",
+      dependencies: [.product(name: "Mockable", package: "Mockable")],
+      swiftSettings: [.define("MOCKING", .when(configuration: .debug))]
+    ),
+    .testTarget(
+      name: "HandleLocationTests",
+      dependencies: [
+        "HandleLocation",
         .product(name: "Mockable", package: "Mockable"),
       ]
     ),
