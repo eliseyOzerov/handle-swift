@@ -46,7 +46,7 @@ final class KeychainHandleTests: XCTestCase {
   }
 
   func testForgeStylePasswordAttributesRemainAvailable() {
-    let attributes = Keychain.Password.Attributes.service(
+    let attributes = SecurityHandle.Keychain.Password.Attributes.service(
       "wave-api",
       label: "accessToken",
       account: "user"
@@ -59,8 +59,16 @@ final class KeychainHandleTests: XCTestCase {
   }
 
   func testKeychainErrorMapsStatusValues() {
-    XCTAssertEqual(KeychainError.fromValue(errSecDuplicateItem), .duplicateItem)
-    XCTAssertEqual(KeychainError.fromValue(errSecItemNotFound), .itemNotFound)
-    XCTAssertEqual(KeychainError.duplicateItem.statusValue, errSecDuplicateItem)
+    XCTAssertEqual(SecurityHandle.Error.fromValue(errSecDuplicateItem), .duplicateItem)
+    XCTAssertEqual(SecurityHandle.Error.fromValue(errSecItemNotFound), .itemNotFound)
+    XCTAssertEqual(SecurityHandle.Error.duplicateItem.statusValue, errSecDuplicateItem)
+  }
+
+  func testSecurityHandleNamespaceExposesKeychainItemTypes() {
+    _ = SecurityHandle.Keychain.Attributes()
+    _ = SecurityHandle.Keychain.Match()
+    _ = SecurityHandle.Keychain.Key.Attributes(applicationTag: Data("tag".utf8))
+    _ = SecurityHandle.Keychain.Certificate.Attributes()
+    _ = SecurityHandle.Keychain.Identity.Attributes()
   }
 }
