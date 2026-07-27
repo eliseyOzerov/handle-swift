@@ -4,7 +4,7 @@ import XCTest
 
 final class MockableKeychainTests: XCTestCase {
   func testMockableCanMockKeychainProtocol() throws {
-    let keychain = SecurityHandle.Keychain.MockService()
+    let keychain = SecurityHandle.Keychain.Mock()
     let attributes = SecurityHandle.Keychain.Password.Attributes.service(
       "wave-api",
       label: "accessToken"

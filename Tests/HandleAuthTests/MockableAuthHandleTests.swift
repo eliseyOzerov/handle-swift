@@ -5,7 +5,7 @@ import XCTest
 final class MockableAuthHandleTests: XCTestCase {
   @MainActor
   func testMockableCanMockAppleProtocol() async throws {
-    let apple = AuthHandle.Apple.MockService()
+    let apple = AuthHandle.Apple.Mock()
     let result = AuthHandle.Apple.SignInResult(
       identityToken: "identity-token",
       userID: "user-id",
@@ -26,7 +26,7 @@ final class MockableAuthHandleTests: XCTestCase {
 
   @MainActor
   func testMockableCanMockLocalProtocol() async throws {
-    let local = AuthHandle.Local.MockService()
+    let local = AuthHandle.Local.Mock()
     let result = AuthHandle.Local.Result(policy: .biometrics, biometryType: .faceID)
 
     given(local)

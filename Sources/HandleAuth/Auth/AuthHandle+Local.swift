@@ -112,7 +112,7 @@ extension AuthHandle {
 
 extension AuthHandle.Local {
   @Mockable
-  public protocol Service: Sendable {
+  public protocol Interface: Sendable {
     @MainActor
     var biometryType: BiometryType { get }
 
@@ -134,6 +134,10 @@ extension AuthHandle.Local {
       options: PromptOptions
     ) async throws -> Result
   }
+
+  #if MOCKING
+  public typealias Mock = MockInterface
+  #endif
 
   public enum Policy: Sendable, Equatable {
     case deviceOwner
@@ -452,4 +456,4 @@ extension AuthHandle.Local {
   }
 }
 
-extension AuthHandle.Local: AuthHandle.Local.Service {}
+extension AuthHandle.Local: AuthHandle.Local.Interface {}

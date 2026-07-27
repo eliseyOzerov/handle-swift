@@ -48,13 +48,17 @@ extension AuthHandle {
 
 extension AuthHandle.Apple {
   @Mockable
-  public protocol Service: Sendable {
+  public protocol Interface: Sendable {
     @MainActor
     func signIn(options: SignInOptions) async throws -> SignInResult
 
     @MainActor
     func credentialState(for userID: String) async throws -> CredentialState
   }
+
+  #if MOCKING
+  public typealias Mock = MockInterface
+  #endif
 
   public enum Error: Swift.Error, Equatable {
     case invalidCredential
@@ -313,7 +317,7 @@ extension AuthHandle.Apple {
   }
 }
 
-extension AuthHandle.Apple: AuthHandle.Apple.Service {}
+extension AuthHandle.Apple: AuthHandle.Apple.Interface {}
 
 @MainActor
 private final class AppleAuthorizationSession: NSObject, ASAuthorizationControllerDelegate {

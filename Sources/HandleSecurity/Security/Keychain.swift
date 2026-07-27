@@ -35,7 +35,7 @@ public final class Keychain: Sendable {
 
 extension SecurityHandle.Keychain {
   @Mockable
-  public protocol Service: Sendable {
+  public protocol Interface: Sendable {
     func save(_ value: String, for query: Password.Attributes) throws
 
     func find(
@@ -45,6 +45,10 @@ extension SecurityHandle.Keychain {
 
     func delete(_ query: Password.Attributes, matching: SecurityHandle.Keychain.Match?) throws
   }
+
+  #if MOCKING
+  public typealias Mock = MockInterface
+  #endif
 
   /// Shared Keychain item attributes used by password, certificate, identity, and key queries.
   public struct Attributes {
@@ -143,7 +147,7 @@ extension SecurityHandle.Keychain {
   }
 }
 
-extension SecurityHandle.Keychain: SecurityHandle.Keychain.Service {}
+extension SecurityHandle.Keychain: SecurityHandle.Keychain.Interface {}
 
 extension SecurityHandle.Keychain {
   /// Accessibility policies for `SecurityHandle.Keychain.Attributes`.

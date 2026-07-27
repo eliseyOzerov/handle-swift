@@ -37,11 +37,14 @@ let testLocal = AuthHandle.Local.Test()
 testLocal.setAuthenticationResult(.init(policy: .deviceOwner, biometryType: .faceID))
 ```
 
-Each handle also exposes a nested `Service` protocol for macro-based mocking:
+Each handle also exposes a nested `Interface` protocol for macro-based mocking:
 
 ```swift
-let apple: any AuthHandle.Apple.Service = AuthHandle.Apple.shared
-let keychain: any SecurityHandle.Keychain.Service = SecurityHandle.Keychain.shared
+let apple: any AuthHandle.Apple.Interface = AuthHandle.Apple.shared
+let keychain: any SecurityHandle.Keychain.Interface = SecurityHandle.Keychain.shared
+
+let mockApple = AuthHandle.Apple.Mock()
+let mockKeychain = SecurityHandle.Keychain.Mock()
 ```
 
 ### HandleSecurity
