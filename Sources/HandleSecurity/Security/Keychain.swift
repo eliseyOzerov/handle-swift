@@ -1,4 +1,5 @@
 import Foundation
+import Mockable
 import Security
 
 /// Namespace for Security.framework Keychain helpers, including `SecurityHandle.Keychain.Password` and `SecurityHandle.Keychain.Key`.
@@ -33,6 +34,18 @@ public final class Keychain: Sendable {
 }
 
 extension SecurityHandle.Keychain {
+  @Mockable
+  public protocol Service: Sendable {
+    func save(_ value: String, for query: Password.Attributes) throws
+
+    func find(
+      _ query: Password.Attributes,
+      matching: SecurityHandle.Keychain.Match
+    ) throws -> String?
+
+    func delete(_ query: Password.Attributes, matching: SecurityHandle.Keychain.Match?) throws
+  }
+
   /// Shared Keychain item attributes used by password, certificate, identity, and key queries.
   public struct Attributes {
     public var accessibility: AccessPolicy?
@@ -129,6 +142,8 @@ extension SecurityHandle.Keychain {
     }
   }
 }
+
+extension SecurityHandle.Keychain: SecurityHandle.Keychain.Service {}
 
 extension SecurityHandle.Keychain {
   /// Accessibility policies for `SecurityHandle.Keychain.Attributes`.

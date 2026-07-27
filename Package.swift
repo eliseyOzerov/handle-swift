@@ -9,10 +9,36 @@ let package = Package(
     .library(name: "HandleAuth", targets: ["HandleAuth"]),
     .library(name: "HandleSecurity", targets: ["HandleSecurity"]),
   ],
+  dependencies: [
+    .package(url: "https://github.com/Kolos65/Mockable", from: "0.6.4"),
+  ],
   targets: [
-    .target(name: "HandleAuth", dependencies: ["HandleSecurity"]),
-    .testTarget(name: "HandleAuthTests", dependencies: ["HandleAuth"]),
-    .target(name: "HandleSecurity"),
-    .testTarget(name: "HandleSecurityTests", dependencies: ["HandleSecurity"]),
+    .target(
+      name: "HandleAuth",
+      dependencies: [
+        "HandleSecurity",
+        .product(name: "Mockable", package: "Mockable"),
+      ],
+      swiftSettings: [.define("MOCKING", .when(configuration: .debug))]
+    ),
+    .testTarget(
+      name: "HandleAuthTests",
+      dependencies: [
+        "HandleAuth",
+        .product(name: "Mockable", package: "Mockable"),
+      ]
+    ),
+    .target(
+      name: "HandleSecurity",
+      dependencies: [.product(name: "Mockable", package: "Mockable")],
+      swiftSettings: [.define("MOCKING", .when(configuration: .debug))]
+    ),
+    .testTarget(
+      name: "HandleSecurityTests",
+      dependencies: [
+        "HandleSecurity",
+        .product(name: "Mockable", package: "Mockable"),
+      ]
+    ),
   ]
 )

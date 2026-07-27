@@ -37,6 +37,13 @@ let testLocal = AuthHandle.Local.Test()
 testLocal.setAuthenticationResult(.init(policy: .deviceOwner, biometryType: .faceID))
 ```
 
+Each handle also exposes a nested `Service` protocol for macro-based mocking:
+
+```swift
+let apple: any AuthHandle.Apple.Service = AuthHandle.Apple.shared
+let keychain: any SecurityHandle.Keychain.Service = SecurityHandle.Keychain.shared
+```
+
 ### HandleSecurity
 
 `HandleSecurity` ports ForgeSecurity's Keychain coverage into a standalone package:

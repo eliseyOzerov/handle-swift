@@ -2,6 +2,7 @@ import AuthenticationServices
 import CryptoKit
 import Foundation
 import HandleSecurity
+import Mockable
 import Security
 
 extension AuthHandle {
@@ -46,6 +47,15 @@ extension AuthHandle {
 }
 
 extension AuthHandle.Apple {
+  @Mockable
+  public protocol Service: Sendable {
+    @MainActor
+    func signIn(options: SignInOptions) async throws -> SignInResult
+
+    @MainActor
+    func credentialState(for userID: String) async throws -> CredentialState
+  }
+
   public enum Error: Swift.Error, Equatable {
     case invalidCredential
     case signInAlreadyInProgress
@@ -302,6 +312,8 @@ extension AuthHandle.Apple {
     }
   }
 }
+
+extension AuthHandle.Apple: AuthHandle.Apple.Service {}
 
 @MainActor
 private final class AppleAuthorizationSession: NSObject, ASAuthorizationControllerDelegate {

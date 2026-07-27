@@ -1,5 +1,6 @@
 import Foundation
 import LocalAuthentication
+import Mockable
 import Security
 
 extension AuthHandle {
@@ -110,6 +111,30 @@ extension AuthHandle {
 }
 
 extension AuthHandle.Local {
+  @Mockable
+  public protocol Service: Sendable {
+    @MainActor
+    var biometryType: BiometryType { get }
+
+    @MainActor
+    func canAuthenticate(policy: Policy) -> Availability
+
+    @MainActor
+    func authenticate(
+      reason: String,
+      policy: Policy,
+      options: PromptOptions
+    ) async throws -> Result
+
+    @MainActor
+    func authenticate(
+      accessControl: SecAccessControl,
+      operation: AccessControlOperation,
+      reason: String,
+      options: PromptOptions
+    ) async throws -> Result
+  }
+
   public enum Policy: Sendable, Equatable {
     case deviceOwner
     case biometrics
@@ -426,3 +451,5 @@ extension AuthHandle.Local {
     }
   }
 }
+
+extension AuthHandle.Local: AuthHandle.Local.Service {}
