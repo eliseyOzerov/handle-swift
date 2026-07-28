@@ -7,7 +7,7 @@ import Security
 
 extension AuthHandle {
   /// Async Sign in with Apple handle.
-  public class Apple: @unchecked Sendable {
+  public final class Apple: @unchecked Sendable {
     public static let shared = Apple()
 
     private let displayNameStore: DisplayNameStore?
@@ -19,7 +19,7 @@ extension AuthHandle {
 
     /// Starts a Sign in with Apple request and returns the resulting identity token.
     @MainActor
-    open func signIn(options: SignInOptions = SignInOptions()) async throws -> SignInResult {
+    public func signIn(options: SignInOptions = SignInOptions()) async throws -> SignInResult {
       guard activeSession == nil else {
         throw Error.signInAlreadyInProgress
       }
@@ -32,7 +32,7 @@ extension AuthHandle {
 
     /// Returns Apple's current credential state for a user identifier.
     @MainActor
-    open func credentialState(for userID: String) async throws -> CredentialState {
+    public func credentialState(for userID: String) async throws -> CredentialState {
       try await withCheckedThrowingContinuation { continuation in
         ASAuthorizationAppleIDProvider().getCredentialState(forUserID: userID) { state, error in
           if let error {
@@ -65,10 +65,6 @@ extension AuthHandle.Apple {
     case signInAlreadyInProgress
   }
 
-  public enum TestError: Swift.Error, Equatable {
-    case unhandledSignIn
-    case unhandledCredentialState(userID: String)
-  }
 
   public struct Scopes: OptionSet, Sendable {
     public let rawValue: Int
@@ -210,111 +206,6 @@ extension AuthHandle.Apple {
     }
   }
 
-  public struct SignInCall: Sendable, Equatable {
-    public let options: SignInOptions
-
-    public init(options: SignInOptions) {
-      self.options = options
-    }
-  }
-
-  /// Test handle with configurable returns, call counters, and local credential state.
-  public final class Test: AuthHandle.Apple, @unchecked Sendable {
-    private let lock = NSLock()
-    private var signInResults: [(SignInOptions?, Result<SignInResult, Swift.Error>)] = []
-    private var queuedSignInResults: [Result<SignInResult, Swift.Error>] = []
-    private var recordedSignInCalls: [SignInCall] = []
-    private var credentialStates: [String: CredentialState] = [:]
-
-    public init() {
-      super.init(displayNameStore: nil)
-    }
-
-    public var signInCallCount: Int {
-      lock.withLock { recordedSignInCalls.count }
-    }
-
-    public var signInCalls: [SignInCall] {
-      lock.withLock { recordedSignInCalls }
-    }
-
-    public func setSignInResult(
-      _ result: SignInResult,
-      for options: SignInOptions? = nil
-    ) {
-      setSignInResult(.success(result), for: options)
-    }
-
-    public func setSignInError(
-      _ error: Swift.Error,
-      for options: SignInOptions? = nil
-    ) {
-      setSignInResult(.failure(error), for: options)
-    }
-
-    public func enqueueSignInResult(_ result: SignInResult) {
-      enqueueSignInResult(.success(result))
-    }
-
-    public func enqueueSignInError(_ error: Swift.Error) {
-      enqueueSignInResult(.failure(error))
-    }
-
-    public func setCredentialState(_ state: CredentialState, for userID: String) {
-      lock.withLock {
-        credentialStates[userID] = state
-      }
-    }
-
-    @MainActor
-    override public func signIn(options: SignInOptions = SignInOptions()) async throws -> SignInResult {
-      let result = lock.withLock {
-        recordedSignInCalls.append(SignInCall(options: options))
-
-        if !queuedSignInResults.isEmpty {
-          return queuedSignInResults.removeFirst()
-        }
-
-        if let exact = signInResults.last(where: { $0.0 == options }) {
-          return exact.1
-        }
-
-        if let fallback = signInResults.last(where: { $0.0 == nil }) {
-          return fallback.1
-        }
-
-        return .failure(TestError.unhandledSignIn)
-      }
-
-      return try result.get()
-    }
-
-    @MainActor
-    override public func credentialState(for userID: String) async throws -> CredentialState {
-      try lock.withLock {
-        guard let state = credentialStates[userID] else {
-          throw TestError.unhandledCredentialState(userID: userID)
-        }
-
-        return state
-      }
-    }
-
-    private func setSignInResult(
-      _ result: Result<SignInResult, Swift.Error>,
-      for options: SignInOptions?
-    ) {
-      lock.withLock {
-        signInResults.append((options, result))
-      }
-    }
-
-    private func enqueueSignInResult(_ result: Result<SignInResult, Swift.Error>) {
-      lock.withLock {
-        queuedSignInResults.append(result)
-      }
-    }
-  }
 }
 
 extension AuthHandle.Apple: AuthHandle.Apple.Interface {}
