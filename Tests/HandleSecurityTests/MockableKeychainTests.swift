@@ -12,9 +12,9 @@ final class MockableKeychainTests: XCTestCase {
 
     given(keychain)
       .find(.any, matching: .any)
-      .willReturn("token")
+      .willReturn(Data("token".utf8))
 
-    let token = try keychain.find(attributes, matching: .init())
+    let token = try keychain.findString(attributes, matching: .init())
 
     XCTAssertEqual(token, "token")
     verify(keychain)

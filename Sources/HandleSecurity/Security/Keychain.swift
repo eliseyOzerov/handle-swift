@@ -8,19 +8,19 @@ public final class Keychain: Sendable {
   private init() {}
   public static let shared = Keychain()
 
-  /// Saves a generic password string using `SecurityHandle.Keychain.Password`.
-  public func save(_ value: String, for query: Password.Attributes) throws {
-    try Password().save(Data(value.utf8), for: query)
+  /// Saves generic password data using `SecurityHandle.Keychain.Password`.
+  public func save(_ value: Data, for query: Password.Attributes) throws {
+    try Password().save(value, for: query)
   }
 
-  /// Finds a generic password string using `SecurityHandle.Keychain.Password`.
+  /// Finds generic password data using `SecurityHandle.Keychain.Password`.
   public func find(
     _ query: Password.Attributes,
     matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
-  ) throws -> String? {
+  ) throws -> Data? {
     do {
       let result = try Password().find(query, matching: matching)
-      return String(data: result.data, encoding: .utf8)
+      return result.data
     } catch SecurityHandle.Error.itemNotFound {
       return nil
     }
@@ -36,190 +36,14 @@ public final class Keychain: Sendable {
 extension SecurityHandle.Keychain {
   @Mockable
   public protocol Interface: Sendable {
-    func save(_ value: String, for query: Password.Attributes) throws
+    func save(_ value: Data, for query: Password.Attributes) throws
 
     func find(
       _ query: Password.Attributes,
       matching: SecurityHandle.Keychain.Match
-    ) throws -> String?
+    ) throws -> Data?
 
     func delete(_ query: Password.Attributes, matching: SecurityHandle.Keychain.Match?) throws
-  }
-
-  /// In-memory test Keychain with local storage and call recording.
-  public final class Test: SecurityHandle.Keychain.Interface, @unchecked Sendable {
-    private let lock = NSLock()
-    private var values: [PasswordKey: String] = [:]
-    private var findResults: [(PasswordKey?, Result<String?, Swift.Error>)] = []
-    private var saveResults: [(PasswordKey?, Result<Void, Swift.Error>)] = []
-    private var deleteResults: [(PasswordKey?, Result<Void, Swift.Error>)] = []
-    private var recordedSaveCalls: [SaveCall] = []
-    private var recordedFindCalls: [FindCall] = []
-    private var recordedDeleteCalls: [DeleteCall] = []
-
-    public init() {}
-
-    public var saveCallCount: Int {
-      lock.withLock { recordedSaveCalls.count }
-    }
-
-    public var findCallCount: Int {
-      lock.withLock { recordedFindCalls.count }
-    }
-
-    public var deleteCallCount: Int {
-      lock.withLock { recordedDeleteCalls.count }
-    }
-
-    public var saveCalls: [SaveCall] {
-      lock.withLock { recordedSaveCalls }
-    }
-
-    public var findCalls: [FindCall] {
-      lock.withLock { recordedFindCalls }
-    }
-
-    public var deleteCalls: [DeleteCall] {
-      lock.withLock { recordedDeleteCalls }
-    }
-
-    public func save(_ value: String, for query: Password.Attributes) throws {
-      try lock.withLock {
-        let key = PasswordKey(query)
-        recordedSaveCalls.append(SaveCall(value: value, query: query))
-        if let result = saveResults.last(where: { $0.0 == nil || $0.0 == key })?.1 {
-          try result.get()
-        }
-        values[key] = value
-      }
-    }
-
-    public func find(
-      _ query: Password.Attributes,
-      matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
-    ) throws -> String? {
-      try lock.withLock {
-        let key = PasswordKey(query)
-        recordedFindCalls.append(FindCall(query: query, matching: matching))
-        if let result = findResults.last(where: { $0.0 == nil || $0.0 == key })?.1 {
-          return try result.get()
-        }
-        return values[key]
-      }
-    }
-
-    public func delete(_ query: Password.Attributes, matching: SecurityHandle.Keychain.Match? = nil) throws {
-      try lock.withLock {
-        let key = PasswordKey(query)
-        recordedDeleteCalls.append(DeleteCall(query: query, matching: matching))
-        if let result = deleteResults.last(where: { $0.0 == nil || $0.0 == key })?.1 {
-          try result.get()
-        }
-        values[key] = nil
-      }
-    }
-
-    public func setValue(_ value: String?, for query: Password.Attributes) {
-      lock.withLock {
-        values[PasswordKey(query)] = value
-      }
-    }
-
-    public func setFindResult(_ value: String?, for query: Password.Attributes? = nil) {
-      setFindResult(.success(value), for: query)
-    }
-
-    public func setFindError(_ error: Swift.Error, for query: Password.Attributes? = nil) {
-      setFindResult(.failure(error), for: query)
-    }
-
-    public func setSaveError(_ error: Swift.Error, for query: Password.Attributes? = nil) {
-      setSaveResult(.failure(error), for: query)
-    }
-
-    public func setDeleteError(_ error: Swift.Error, for query: Password.Attributes? = nil) {
-      setDeleteResult(.failure(error), for: query)
-    }
-
-    public func removeAll() {
-      lock.withLock {
-        values.removeAll()
-        findResults.removeAll()
-        saveResults.removeAll()
-        deleteResults.removeAll()
-        recordedSaveCalls.removeAll()
-        recordedFindCalls.removeAll()
-        recordedDeleteCalls.removeAll()
-      }
-    }
-
-    private func setFindResult(
-      _ result: Result<String?, Swift.Error>,
-      for query: Password.Attributes?
-    ) {
-      lock.withLock {
-        findResults.append((query.map(PasswordKey.init), result))
-      }
-    }
-
-    private func setSaveResult(
-      _ result: Result<Void, Swift.Error>,
-      for query: Password.Attributes?
-    ) {
-      lock.withLock {
-        saveResults.append((query.map(PasswordKey.init), result))
-      }
-    }
-
-    private func setDeleteResult(
-      _ result: Result<Void, Swift.Error>,
-      for query: Password.Attributes?
-    ) {
-      lock.withLock {
-        deleteResults.append((query.map(PasswordKey.init), result))
-      }
-    }
-
-    private struct PasswordKey: Hashable {
-      var kind: String
-      var service: String?
-      var account: String?
-      var generic: Data?
-      var server: String?
-      var securityDomain: String?
-      var internetProtocol: String?
-      var authenticationType: String?
-      var port: Int?
-      var path: String?
-
-      init(_ attributes: Password.Attributes) {
-        kind = String(describing: attributes.kind)
-        service = attributes.service
-        account = attributes.account
-        generic = attributes.generic
-        server = attributes.server
-        securityDomain = attributes.securityDomain
-        internetProtocol = attributes.internetProtocol.map(String.init(describing:))
-        authenticationType = attributes.authenticationType.map(String.init(describing:))
-        port = attributes.port
-        path = attributes.path
-      }
-    }
-  }
-
-  public struct SaveCall {
-    public let value: String
-    public let query: Password.Attributes
-  }
-
-  public struct FindCall {
-    public let query: Password.Attributes
-    public let matching: SecurityHandle.Keychain.Match
-  }
-
-  public struct DeleteCall {
-    public let query: Password.Attributes
-    public let matching: SecurityHandle.Keychain.Match?
   }
 
   #if MOCKING
@@ -329,7 +153,7 @@ public extension SecurityHandle.Keychain.Interface {
   func find(
     _ query: SecurityHandle.Keychain.Password.Attributes,
     matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
-  ) throws -> String? {
+  ) throws -> Data? {
     try find(query, matching: matching)
   }
 
@@ -338,6 +162,40 @@ public extension SecurityHandle.Keychain.Interface {
     matching: SecurityHandle.Keychain.Match? = nil
   ) throws {
     try delete(query, matching: matching)
+  }
+}
+
+public extension SecurityHandle.Keychain.Interface {
+  func save(_ value: String, for query: SecurityHandle.Keychain.Password.Attributes) throws {
+    try save(Data(value.utf8), for: query)
+  }
+
+  func findString(
+    _ query: SecurityHandle.Keychain.Password.Attributes,
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match()
+  ) throws -> String? {
+    guard let data = try find(query, matching: matching) else { return nil }
+    return String(data: data, encoding: .utf8)
+  }
+}
+
+public extension SecurityHandle.Keychain.Interface {
+  func save<Value: Encodable>(
+    _ value: Value,
+    for query: SecurityHandle.Keychain.Password.Attributes,
+    encoder: JSONEncoder = JSONEncoder()
+  ) throws {
+    try save(try encoder.encode(value), for: query)
+  }
+
+  func find<Value: Decodable>(
+    _ type: Value.Type,
+    for query: SecurityHandle.Keychain.Password.Attributes,
+    matching: SecurityHandle.Keychain.Match = SecurityHandle.Keychain.Match(),
+    decoder: JSONDecoder = JSONDecoder()
+  ) throws -> Value? {
+    guard let data = try find(query, matching: matching) else { return nil }
+    return try decoder.decode(type, from: data)
   }
 }
 

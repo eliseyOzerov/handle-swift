@@ -186,7 +186,7 @@ extension AuthHandle.Apple {
     ) -> DisplayNameStore {
       DisplayNameStore(
         load: { userID in
-          try? keychain.find(attributes(service: service, userID: userID))
+          try? keychain.findString(attributes(service: service, userID: userID))
         },
         save: { userID, displayName in
           try? keychain.save(displayName, for: attributes(service: service, userID: userID))
